@@ -41,7 +41,7 @@ func fetchNews(pageIndex int) ([]domain.NewsEntry, error) {
 	if err != nil {
 		return nil, fmt.Errorf("loading news from api using htmlquery: %w", err)
 	}
-	nodes, err := htmlquery.QueryAll(doc, "/html/body/div[1]/div/div[2]/div/div[4]/div[2]/div/div[2]/form/div[*]/div/div/ul/li[3]")
+	nodes, err := htmlquery.QueryAll(doc, "/html/body/div[1]/div/div[2]/div/div[4]/div[2]/div/div[2]/form/div[*]/div/div/ul/li[3]") // NOTE: of course, this will break someday
 	if err != nil {
 		return nil, fmt.Errorf("querying for isbns in html using htmlquery: %w", err)
 	}
