@@ -6,11 +6,16 @@ import (
 	"time"
 )
 
-type NewsService struct {
+type NewsDS interface {
+	GetAllNews() ([]domain.NewsEntry, error)
 }
 
-func NewNewsService() *NewsService {
-	return &NewsService{}
+type NewsService struct {
+	ds NewsDS
+}
+
+func NewNewsService(ds NewsDS) *NewsService {
+	return &NewsService{ds}
 }
 
 func (n *NewsService) GetNews() <-chan domain.NewsEntry {
@@ -18,8 +23,15 @@ func (n *NewsService) GetNews() <-chan domain.NewsEntry {
 	ch := make(chan domain.NewsEntry)
 	go func() {
 		for {
-			time.Sleep(10 * time.Second)
-			ch <- domain.NewsEntry{URL: "Hello, test message"}
+			time.Sleep(30 * time.Second)
+			log.Println("getting all news from api...")
+			news, err := n.ds.GetAllNews()
+			if err != nil {
+				log.Println("ERROR:", "failed getting all news from api:", err)
+			}
+			for _, newsEntry := range news {
+				ch <- newsEntry
+			}
 		}
 	}()
 	return ch

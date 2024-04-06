@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/k0marov/newsbot/internal/backend/datasources/newsapi"
 	"github.com/k0marov/newsbot/internal/backend/service"
 	"github.com/k0marov/newsbot/internal/core/config"
 	"github.com/k0marov/newsbot/internal/frontend"
@@ -8,7 +9,8 @@ import (
 
 func main() {
 	cfg := config.GetConfig()
-	newsSVC := service.NewNewsService()
+	newsDS := newsapi.NewNewsAPI()
+	newsSVC := service.NewNewsService(newsDS)
 	newsCh := newsSVC.GetNews()
 	authSVC := service.NewAuthService(cfg.BotCorrectPassword)
 	frontend.StartBot(cfg.BotToken, newsCh, authSVC, authSVC)

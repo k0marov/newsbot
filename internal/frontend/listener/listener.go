@@ -35,7 +35,7 @@ func (l *Listener) ListenForNews() {
 			if err != nil {
 				log.Panicf("parsing chat id %q as int: %v", chatID, err)
 			}
-			if _, err := l.b.Send(telebot.ChatID(chatIDInt), message); err != nil {
+			if _, err := l.b.Send(telebot.ChatID(chatIDInt), message.URL); err != nil {
 				log.Println("ERROR:", fmt.Errorf("failed sending news message to %q: %w", chatID, err))
 			}
 		}
