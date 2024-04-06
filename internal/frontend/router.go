@@ -2,6 +2,7 @@ package frontend
 
 import (
 	"fmt"
+	"github.com/k0marov/newsbot/internal/frontend/texts"
 	tele "gopkg.in/telebot.v3"
 	"strconv"
 )
@@ -26,7 +27,7 @@ func (r *Router) DefineRoutes(b *tele.Bot) {
 }
 
 func (r *Router) Start(c tele.Context) error {
-	return c.Send("Start!")
+	return c.Send(texts.Start)
 }
 
 func (r *Router) HandleText(c tele.Context) error {
@@ -36,8 +37,8 @@ func (r *Router) HandleText(c tele.Context) error {
 		return fmt.Errorf("passing password to service: %w", err)
 	}
 	if ok {
-		return c.Reply("Вы ввели правильный пароль!")
+		return c.Reply(texts.CorrectPassEntered)
 	} else {
-		return c.Reply("Неверный пароль!")
+		return c.Reply(texts.IncorrectPassEntered)
 	}
 }
