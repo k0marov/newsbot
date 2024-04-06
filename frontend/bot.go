@@ -7,10 +7,14 @@ import (
 	"time"
 )
 
-func StartBot() {
+func StartBot(svc Service) {
 	pref := tele.Settings{
 		Token:  os.Getenv("BOT_TOKEN"),
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
+		OnError: func(err error, context tele.Context) {
+			context.Reply("Oops, some error happened!")
+			log.Println("ERROR:", err)
+		},
 	}
 
 	b, err := tele.NewBot(pref)
@@ -19,7 +23,7 @@ func StartBot() {
 		return
 	}
 
-	router := NewRouter()
+	router := NewRouter(svc)
 
 	router.DefineRoutes(b)
 
