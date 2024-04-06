@@ -24,8 +24,7 @@ func StartBot(token string, news <-chan domain.NewsEntry, passSVC router.Service
 
 	b, err := tele.NewBot(pref)
 	if err != nil {
-		log.Fatal(err)
-		return
+		log.Fatalf("starting bot: %v", err)
 	}
 
 	r := router.NewRouter(passSVC)

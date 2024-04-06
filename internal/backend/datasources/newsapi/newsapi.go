@@ -19,9 +19,24 @@ func NewNewsAPI() *NewsAPI {
 }
 
 func (n *NewsAPI) GetAllNews() ([]domain.NewsEntry, error) {
-	// TODO: query other pages
-	queryURL := constructSearchURL(1, pageSize, searchQuery).String()
-	log.Println(queryURL)
+	news := make([]domain.NewsEntry, 0, 1000)
+	for pageIndex := 1; pageIndex <= 3; pageIndex++ {
+		fetchedNews, err := fetchNews(pageIndex)
+		if err != nil {
+			return nil, fmt.Errorf("fetching news for page #%d: %w", pageIndex, err)
+		}
+		log.Printf("got %d news for page %d\n", len(fetchedNews), pageIndex)
+		if len(fetchedNews) == 0 {
+			break
+		}
+		news = append(news, fetchedNews...)
+	}
+	log.Printf("got a total of %d news\n", len(news))
+	return news, nil
+}
+
+func fetchNews(pageIndex int) ([]domain.NewsEntry, error) {
+	queryURL := constructSearchURL(pageIndex, pageSize, searchQuery).String()
 	doc, err := htmlquery.LoadURL(queryURL)
 	if err != nil {
 		return nil, fmt.Errorf("loading news from api using htmlquery: %w", err)
