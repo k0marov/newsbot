@@ -32,7 +32,7 @@ func (r *Router) Start(c tele.Context) error {
 
 func (r *Router) HandleText(c tele.Context) error {
 	pass := c.Message().Text
-	ok, err := r.svc.PasswordEntered(strconv.FormatInt(c.Sender().ID, 10), pass)
+	ok, err := r.svc.PasswordEntered(strconv.FormatInt(c.Chat().ID, 10), pass)
 	if err != nil {
 		return fmt.Errorf("passing password to service: %w", err)
 	}

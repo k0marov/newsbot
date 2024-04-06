@@ -10,6 +10,8 @@ import (
 )
 
 func StartBot(token string, news <-chan string, passSVC router.Service, authSVC listener.AuthService) {
+	log.Println("Starting bot...")
+
 	pref := tele.Settings{
 		Token:  token,
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
