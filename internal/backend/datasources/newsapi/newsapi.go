@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/url"
 	"strconv"
+	"strings"
+	"unicode"
 )
 
 type NewsAPI struct {
@@ -30,7 +32,9 @@ func (n *NewsAPI) GetAllNews() ([]domain.NewsEntry, error) {
 	}
 	news := make([]domain.NewsEntry, len(nodes))
 	for i := range nodes {
-		news[i] = domain.NewsEntry{URL: nodes[i].FirstChild.Data}
+		isbnText := nodes[i].FirstChild.Data
+		isbn := parseISBN(isbnText)
+		news[i] = domain.NewsEntry{URL: constructNewsEntryURL(isbn)}
 	}
 	return news, nil
 }
@@ -46,4 +50,26 @@ func constructSearchURL(pageIndex, pageSize int, searchQuery string) *url.URL {
 	q.Add("schStr", searchQuery) // url.QueryEscape(searchQuery))
 	u.RawQuery = q.Encode()
 	return u
+}
+
+// parseISBN parses extracts ISBN number from a string that looks like "ISBN: 979-11-93265-28-4 (75810)"
+// NOTE: of course, it will break in the future, when website's design changes
+func parseISBN(isbnText string) string {
+	const isbnLength = 13
+
+	braceInd := strings.Index(isbnText, "(")
+	if braceInd == -1 {
+		log.Panicf("failed parsing isbn %q: brace not found", isbnText)
+	}
+	isbnText = isbnText[:braceInd]
+	isbnRunes := make([]rune, 0, isbnLength)
+	for _, c := range isbnText {
+		if unicode.IsDigit(c) {
+			isbnRunes = append(isbnRunes, c)
+		}
+	}
+	if len(isbnRunes) != isbnLength {
+		log.Panicf("failed parsing isbn %q: got invalid length", isbnText)
+	}
+	return string(isbnRunes)
 }
