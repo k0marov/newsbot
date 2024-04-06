@@ -11,7 +11,7 @@ import (
 )
 
 func StartBot(token string, news <-chan domain.NewsEntry, passSVC router.Service, authSVC listener.AuthService) {
-	log.Println("Starting bot...")
+	log.Println("starting bot...")
 
 	pref := tele.Settings{
 		Token:  token,

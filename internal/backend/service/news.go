@@ -29,6 +29,7 @@ func (n *NewsService) GetNews() <-chan domain.NewsEntry {
 			if err != nil {
 				log.Println("ERROR:", "failed getting all news from api:", err)
 			}
+			news = news[:5] // TODO: this is for a test
 			for _, newsEntry := range news {
 				ch <- newsEntry
 			}
