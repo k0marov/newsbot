@@ -1,0 +1,5 @@
+package frontend
+
+func StartBot() {
+
+}
