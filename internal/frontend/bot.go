@@ -1,6 +1,7 @@
 package frontend
 
 import (
+	"github.com/k0marov/newsbot/internal/frontend/listener"
 	"github.com/k0marov/newsbot/internal/frontend/router"
 	"github.com/k0marov/newsbot/internal/frontend/texts"
 	tele "gopkg.in/telebot.v3"
@@ -8,7 +9,7 @@ import (
 	"time"
 )
 
-func StartBot(token string, svc router.Service) {
+func StartBot(token string, news <-chan string, passSVC router.Service, authSVC listener.AuthService) {
 	pref := tele.Settings{
 		Token:  token,
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
@@ -24,9 +25,10 @@ func StartBot(token string, svc router.Service) {
 		return
 	}
 
-	router := router.NewRouter(svc)
+	r := router.NewRouter(passSVC)
+	r.DefineRoutes(b)
 
-	router.DefineRoutes(b)
-
+	newsListener := listener.NewListener(b, news, authSVC)
+	go newsListener.ListenForNews()
 	b.Start()
 }
