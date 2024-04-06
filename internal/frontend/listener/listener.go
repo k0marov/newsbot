@@ -28,6 +28,7 @@ func (l *Listener) ListenForNews() {
 		if err != nil {
 			log.Println("ERROR:", fmt.Errorf("while getting authenticated users: %w", err))
 		}
+		log.Println("got news message, sending it to", len(authenticatedChatIDs), "chats")
 		for _, chatID := range authenticatedChatIDs {
 			chatIDInt, err := strconv.ParseInt(chatID, 10, 0)
 			if err != nil {
