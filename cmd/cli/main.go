@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/k0marov/newsbot/internal/backend/service"
-	"github.com/k0marov/newsbot/internal/config"
+	"github.com/k0marov/newsbot/internal/core/config"
 	"github.com/k0marov/newsbot/internal/frontend"
 )
 

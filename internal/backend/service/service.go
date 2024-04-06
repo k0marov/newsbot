@@ -36,6 +36,5 @@ func (s *AuthService) GetAuthenticated() (chatIDs []string, err error) {
 	for chatID := range s.authenticated {
 		chatIDs = append(chatIDs, chatID)
 	}
-	log.Printf("%v: %v\n", len(chatIDs), chatIDs)
 	return chatIDs, nil
 }

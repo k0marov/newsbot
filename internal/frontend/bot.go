@@ -1,6 +1,7 @@
 package frontend
 
 import (
+	"github.com/k0marov/newsbot/internal/core/domain"
 	"github.com/k0marov/newsbot/internal/frontend/listener"
 	"github.com/k0marov/newsbot/internal/frontend/router"
 	"github.com/k0marov/newsbot/internal/frontend/texts"
@@ -9,7 +10,7 @@ import (
 	"time"
 )
 
-func StartBot(token string, news <-chan string, passSVC router.Service, authSVC listener.AuthService) {
+func StartBot(token string, news <-chan domain.NewsEntry, passSVC router.Service, authSVC listener.AuthService) {
 	log.Println("Starting bot...")
 
 	pref := tele.Settings{

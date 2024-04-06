@@ -2,6 +2,7 @@ package listener
 
 import (
 	"fmt"
+	"github.com/k0marov/newsbot/internal/core/domain"
 	"gopkg.in/telebot.v3"
 	"log"
 	"strconv"
@@ -13,11 +14,11 @@ type AuthService interface {
 
 type Listener struct {
 	b   *telebot.Bot
-	ch  <-chan string
+	ch  <-chan domain.NewsEntry
 	svc AuthService
 }
 
-func NewListener(b *telebot.Bot, ch <-chan string, svc AuthService) *Listener {
+func NewListener(b *telebot.Bot, ch <-chan domain.NewsEntry, svc AuthService) *Listener {
 	return &Listener{b: b, ch: ch, svc: svc}
 }
 
