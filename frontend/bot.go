@@ -19,9 +19,9 @@ func StartBot() {
 		return
 	}
 
-	b.Handle("/hello", func(c tele.Context) error {
-		return c.Send("Hello!")
-	})
+	router := NewRouter()
+
+	router.DefineRoutes(b)
 
 	b.Start()
 }
