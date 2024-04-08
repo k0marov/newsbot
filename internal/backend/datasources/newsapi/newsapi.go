@@ -19,19 +19,11 @@ func NewNewsAPI() *NewsAPI {
 }
 
 func (n *NewsAPI) GetAllNews() ([]domain.NewsEntry, error) {
-	news := make([]domain.NewsEntry, 0, 1000)
-	for pageIndex := 1; pageIndex <= 3; pageIndex++ {
-		fetchedNews, err := fetchNews(pageIndex)
-		if err != nil {
-			return nil, fmt.Errorf("fetching news for page #%d: %w", pageIndex, err)
-		}
-		log.Printf("got %d news for page %d\n", len(fetchedNews), pageIndex)
-		if len(fetchedNews) == 0 {
-			break
-		}
-		news = append(news, fetchedNews...)
+	fetchedNews, err := fetchNews(1)
+	if err != nil {
+		return nil, fmt.Errorf("fetching news from website: %w", err)
 	}
-	log.Printf("got a total of %d news\n", len(news))
+	log.Printf("got a total of %d news\n", len(fetchedNews))
 	return news, nil
 }
 
