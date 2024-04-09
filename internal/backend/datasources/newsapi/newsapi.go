@@ -24,7 +24,7 @@ func (n *NewsAPI) GetAllNews() ([]domain.NewsEntry, error) {
 		return nil, fmt.Errorf("fetching news from website: %w", err)
 	}
 	log.Printf("got a total of %d news\n", len(fetchedNews))
-	return news, nil
+	return fetchedNews, nil
 }
 
 func fetchNews(pageIndex int) ([]domain.NewsEntry, error) {
