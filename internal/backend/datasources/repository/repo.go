@@ -16,12 +16,12 @@ type Repository struct {
 	db *leveldb.DB
 }
 
-func NewRepository() *Repository {
-	db, err := leveldb.OpenFile("leveldb/storage", nil)
+func NewRepository() (r *Repository, close func() error) {
+	db, err := leveldb.OpenFile("/leveldb", nil)
 	if err != nil {
 		log.Fatalf("opening leveldb: %v", err)
 	}
-	return &Repository{db}
+	return &Repository{db}, db.Close
 }
 
 // NOTE: this is highly inefficient. If this becomes a burden, migrate to PostgreSQL
