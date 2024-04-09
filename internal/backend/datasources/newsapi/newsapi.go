@@ -59,7 +59,7 @@ func constructSearchURL(pageIndex, pageSize int, searchQuery string) *url.URL {
 	return u
 }
 
-// parseISBN parses extracts ISBN number from a string that looks like "ISBN: 979-11-93265-28-4 (75810)"
+// parseISBN extracts ISBN number from a string that looks like "ISBN: 979-11-93265-28-4 (75810)"
 // NOTE: of course, it will break in the future, when website's design changes
 func parseISBN(isbnText string) string {
 	const isbnLength = 13
