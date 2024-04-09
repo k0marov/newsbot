@@ -10,12 +10,17 @@ type NewsDS interface {
 	GetAllNews() ([]domain.NewsEntry, error)
 }
 
-type NewsService struct {
-	ds NewsDS
+type NewsSaver interface {
+	SaveAndReturnNew(fetchedNews []domain.NewsEntry) ([]domain.NewsEntry, error)
 }
 
-func NewNewsService(ds NewsDS) *NewsService {
-	return &NewsService{ds}
+type NewsService struct {
+	ds    NewsDS
+	saver NewsSaver
+}
+
+func NewNewsService(ds NewsDS, saver NewsSaver) *NewsService {
+	return &NewsService{ds, saver}
 }
 
 func (n *NewsService) GetNews() <-chan domain.NewsEntry {
@@ -29,8 +34,12 @@ func (n *NewsService) GetNews() <-chan domain.NewsEntry {
 			if err != nil {
 				log.Println("ERROR:", "failed getting all news from api:", err)
 			}
-			news = news[:5] // TODO: this is for a test
-			for _, newsEntry := range news {
+			newNews, err := n.saver.SaveAndReturnNew(news)
+			if err != nil {
+				log.Println("ERROR:", "failed saving fetched news and filtering only those that were not saved before", err)
+			}
+			log.Println("got", len(newNews), "new news")
+			for _, newsEntry := range newNews {
 				ch <- newsEntry
 			}
 		}

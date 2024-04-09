@@ -12,7 +12,9 @@ func main() {
 	cfg := config.GetConfig()
 
 	newsDS := newsapi.NewNewsAPI()
-	newsSVC := service.NewNewsService(newsDS)
+	newsSaver := repository.NewNewsSaver()
+
+	newsSVC := service.NewNewsService(newsDS, newsSaver)
 	newsCh := newsSVC.GetNews()
 
 	repo := repository.NewRepository()
