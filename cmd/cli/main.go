@@ -14,7 +14,7 @@ func main() {
 	newsDS := newsapi.NewNewsAPI()
 	newsSaver := repository.NewNewsSaver()
 
-	newsSVC := service.NewNewsService(newsDS, newsSaver)
+	newsSVC := service.NewNewsService(newsDS, newsSaver, cfg.NewsPollInterval)
 	newsCh := newsSVC.GetNews()
 
 	repo := repository.NewRepository()
