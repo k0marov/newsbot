@@ -15,12 +15,13 @@ type NewsSaver interface {
 }
 
 type NewsService struct {
-	ds    NewsDS
-	saver NewsSaver
+	ds           NewsDS
+	saver        NewsSaver
+	pollInterval time.Duration
 }
 
-func NewNewsService(ds NewsDS, saver NewsSaver) *NewsService {
-	return &NewsService{ds, saver}
+func NewNewsService(ds NewsDS, saver NewsSaver, pollInterval time.Duration) *NewsService {
+	return &NewsService{ds, saver, pollInterval}
 }
 
 func (n *NewsService) GetNews() <-chan domain.NewsEntry {
@@ -28,7 +29,7 @@ func (n *NewsService) GetNews() <-chan domain.NewsEntry {
 	ch := make(chan domain.NewsEntry)
 	go func() {
 		for {
-			time.Sleep(30 * time.Second)
+			time.Sleep(n.pollInterval)
 			log.Println("getting all news from api...")
 			news, err := n.ds.GetAllNews()
 			if err != nil {
