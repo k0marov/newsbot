@@ -6,8 +6,10 @@ import (
 	"github.com/k0marov/newsbot/internal/core/domain"
 	"log"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -19,12 +21,24 @@ func NewNewsAPI() *NewsAPI {
 }
 
 func (n *NewsAPI) GetAllNews() ([]domain.NewsEntry, error) {
-	fetchedNews, err := fetchNews(1)
-	if err != nil {
-		return nil, fmt.Errorf("fetching news from website: %w", err)
+	var news []domain.NewsEntry
+	pageIndex := 1
+	for {
+		log.Printf("fetching page %d\n", pageIndex)
+		fetchedNews, err := fetchNews(pageIndex)
+		if err != nil {
+			return nil, fmt.Errorf("fetching news from website: %w", err)
+		}
+		news = append(news, fetchedNews...)
+		pageIndex++
+		oldestPostDate := oldestPost(fetchedNews).PublicationDate
+		log.Printf("oldest post %v\n", oldestPostDate)
+		if len(fetchedNews) == 0 || oldestPostDate.Before(time.Now()) {
+			break
+		}
 	}
-	log.Printf("got a total of %d news\n", len(fetchedNews))
-	return fetchedNews, nil
+	log.Printf("got a total of %d news\n", len(news))
+	return news, nil
 }
 
 func fetchNews(pageIndex int) ([]domain.NewsEntry, error) {
@@ -33,17 +47,26 @@ func fetchNews(pageIndex int) ([]domain.NewsEntry, error) {
 	if err != nil {
 		return nil, fmt.Errorf("loading news from api using htmlquery: %w", err)
 	}
-	nodes, err := htmlquery.QueryAll(doc, "/html/body/div[1]/div/div[2]/div/div[4]/div[2]/div/div[2]/form/div[*]/div/div/ul/li[3]") // NOTE: of course, this will break someday
+	nodes, err := htmlquery.QueryAll(doc, "/html/body/div[1]/div/div[2]/div/div[4]/div[2]/div/div[2]/form/div[*]/div/div/ul") // NOTE: of course, this will break someday
 	if err != nil {
 		return nil, fmt.Errorf("querying for isbns in html using htmlquery: %w", err)
 	}
 	news := make([]domain.NewsEntry, len(nodes))
-	for i := range nodes {
-		isbnText := nodes[i].FirstChild.Data
-		isbn := parseISBN(isbnText)
-		news[i] = domain.NewsEntry{URL: constructNewsEntryURL(isbn)}
+	for i := range nodes { // 3 and 5
+		isbnNode := htmlquery.FindOne(nodes[i], "/li[3]")
+		isbn := parseISBN(isbnNode.FirstChild.Data)
+		publicationDateNode := htmlquery.FindOne(nodes[i], "/li[5]")
+		publicationDate := parsePublicationDate(publicationDateNode.FirstChild.Data)
+		news[i] = domain.NewsEntry{
+			URL:             constructNewsEntryURL(isbn),
+			PublicationDate: publicationDate,
+		}
 	}
 	return news, nil
+}
+
+func oldestPost(news []domain.NewsEntry) domain.NewsEntry {
+	return slices.MaxFunc(news, func(a, b domain.NewsEntry) int { return a.PublicationDate.Compare(b.PublicationDate) })
 }
 
 func constructSearchURL(pageIndex, pageSize int, searchQuery string) *url.URL {
@@ -57,6 +80,24 @@ func constructSearchURL(pageIndex, pageSize int, searchQuery string) *url.URL {
 	q.Add("schStr", searchQuery) // url.QueryEscape(searchQuery))
 	u.RawQuery = q.Encode()
 	return u
+}
+
+// parseISBN extracts publication date from string that looks like this: "발행(예정)일: 2025.10.09"
+// NOTE: of course, it will break in the future, when website's design changes
+func parsePublicationDate(dateText string) time.Time {
+	//log.Println(dateText)
+	dateRunes := make([]rune, 0)
+	for _, c := range dateText {
+		if unicode.IsDigit(c) || c == '.' {
+			dateRunes = append(dateRunes, c)
+		}
+	}
+	date, err := time.Parse("2006.01.02", string(dateRunes))
+	if err != nil {
+		//log.Println("ERROR:", "failed parsing date", dateText, err)
+		return time.Time{}
+	}
+	return date
 }
 
 // parseISBN extracts ISBN number from a string that looks like "ISBN: 979-11-93265-28-4 (75810)"
