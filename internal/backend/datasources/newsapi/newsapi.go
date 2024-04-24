@@ -29,11 +29,15 @@ func (n *NewsAPI) GetAllNews() ([]domain.NewsEntry, error) {
 		if err != nil {
 			return nil, fmt.Errorf("fetching news from website: %w", err)
 		}
+		if len(fetchedNews) == 0 {
+			log.Printf("got zero news for page %d, stopping\n", pageIndex)
+			break
+		}
 		news = append(news, fetchedNews...)
 		pageIndex++
 		oldestPostDate := oldestPost(fetchedNews).PublicationDate
 		log.Printf("oldest post %v\n", oldestPostDate)
-		if len(fetchedNews) == 0 || oldestPostDate.Before(time.Now()) {
+		if oldestPostDate.Before(time.Now()) {
 			break
 		}
 	}
