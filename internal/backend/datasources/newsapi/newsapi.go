@@ -64,12 +64,15 @@ func fetchNews(pageIndex int) ([]domain.NewsEntry, error) {
 	for i := range nodes { // 3 and 5
 		isbnNode := htmlquery.FindOne(nodes[i], "/li[3]")
 		isbn := parseISBN(isbnNode.FirstChild.Data)
-		publicationDateNode := htmlquery.FindOne(nodes[i], "/li[5]")
+		publicationDateNode := htmlquery.FindOne(nodes[i], "/li[last()-1]")
 		publicationDate := parsePublicationDate(publicationDateNode.FirstChild.Data)
+		price := htmlquery.FindOne(nodes[i], "/li[last()]")
 		news[i] = domain.NewsEntry{
 			URL:             constructNewsEntryURL(isbn),
 			PublicationDate: publicationDate,
+			Price:           price.FirstChild.Data,
 		}
+		log.Printf("%s\n", publicationDate)
 	}
 	return news, nil
 }

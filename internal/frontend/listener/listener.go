@@ -22,6 +22,8 @@ func NewListener(b *telebot.Bot, ch <-chan domain.NewsEntry, svc AuthService) *L
 	return &Listener{b: b, ch: ch, svc: svc}
 }
 
+const filterPrice = "가격: 연재가"
+
 func (l *Listener) ListenForNews() {
 	log.Println("listening for news...")
 	for message := range l.ch {
@@ -29,13 +31,19 @@ func (l *Listener) ListenForNews() {
 		if err != nil {
 			log.Println("ERROR:", fmt.Errorf("while getting authenticated users: %w", err))
 		}
+		if message.Price != filterPrice {
+			log.Printf("skipping news message, because it has incorrect price string: %q\n", message.Price)
+			continue
+		}
+
 		log.Println("got news message, sending it to", len(authenticatedChatIDs), "chats")
 		for _, chatID := range authenticatedChatIDs {
 			chatIDInt, err := strconv.ParseInt(chatID, 10, 0)
 			if err != nil {
 				log.Panicf("parsing chat id %q as int: %v", chatID, err)
 			}
-			if _, err := l.b.Send(telebot.ChatID(chatIDInt), message.URL); err != nil {
+			text := message.URL
+			if _, err := l.b.Send(telebot.ChatID(chatIDInt), text); err != nil {
 				log.Println("ERROR:", fmt.Errorf("failed sending news message to %q: %w", chatID, err))
 			}
 		}
