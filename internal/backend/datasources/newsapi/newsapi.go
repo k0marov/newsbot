@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/antchfx/htmlquery"
 	"github.com/k0marov/newsbot/internal/core/domain"
+	"golang.org/x/net/html"
 	"log"
+	"net/http"
 	"net/url"
 	"slices"
 	"strconv"
@@ -46,10 +48,13 @@ func (n *NewsAPI) GetAllNews() ([]domain.NewsEntry, error) {
 }
 
 func fetchNews(pageIndex int) ([]domain.NewsEntry, error) {
-	queryURL := constructSearchURL(pageIndex, pageSize, searchQuery).String()
-	doc, err := htmlquery.LoadURL(queryURL)
+	resp, err := performSearchReq(pageIndex)
 	if err != nil {
-		return nil, fmt.Errorf("loading news from api using htmlquery: %w", err)
+		return nil, fmt.Errorf("performing search request: %w", err)
+	}
+	doc, err := html.Parse(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("parsing response as html: %w", err)
 	}
 	nodes, err := htmlquery.QueryAll(doc, "/html/body/div[1]/div/div[2]/div/div[4]/div[2]/div/div[2]/form/div[*]/div/div/ul") // NOTE: of course, this will break someday
 	if err != nil {
@@ -84,6 +89,24 @@ func constructSearchURL(pageIndex, pageSize int, searchQuery string) *url.URL {
 	q.Add("schStr", searchQuery) // url.QueryEscape(searchQuery))
 	u.RawQuery = q.Encode()
 	return u
+}
+
+func performSearchReq(pageIndex int) (*http.Response, error) {
+	queryURL := constructSearchURL(pageIndex, pageSize, searchQuery).String()
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodGet, queryURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed constructing request: %w", err)
+	}
+	req.Header.Add("Referer", refererHeader)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed executing request to website: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed executing request to website: got status %d", resp.StatusCode)
+	}
+	return resp, nil
 }
 
 // parseISBN extracts publication date from string that looks like this: "발행(예정)일: 2025.10.09"
