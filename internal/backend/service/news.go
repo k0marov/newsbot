@@ -40,9 +40,8 @@ func (n *NewsService) GetNews() <-chan domain.NewsEntry {
 				log.Println("ERROR:", "failed saving fetched news and filtering only those that were not saved before", err)
 			}
 			log.Println("got", len(newNews), "new news")
-			for _, newsEntry := range news {
+			for _, newsEntry := range newNews {
 				ch <- newsEntry
-				time.Sleep(time.Second)
 			}
 		}
 	}()
